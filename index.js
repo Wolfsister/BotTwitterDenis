@@ -45,21 +45,27 @@ function repondreTweets(){
 		  
 		  //console.log("answeredTweets : "+answeredTweets);
 		  
-		  var text = data[i].text.toLowerCase();
-		  if(answeredTweets.indexOf(data[i].id_str)==-1){
-			  if (text.includes("contrepeterie") || text.includes("contrepèterie")){
+		var text = data[i].text.toLowerCase();
+		if(answeredTweets.indexOf(data[i].id_str)==-1){
+			if (text.includes("contrepeterie") || text.includes("contrepèterie")){
 				  console.log("Contrepeterie trouvée pour le tweet de @"+ data[i].user.screen_name);
 				  envoyerContrepeterie(data[i]);
-			  }else if (text.includes("airquality")){
+			}else if (text.includes("airquality")){
 					console.log("Cherche Qualité de l'Air");
 					var ville = trouverVilleDansTexte(text);
 					obtenirQualiteAir(data[i], ville);
-								  
-			  }else {
-				  saluerTweetos(data[i]);
+				
+			}else if (text.includes("pokemon") || text.includes("pokémon")){
+					console.log("Quel Pokémon je suis ?");
+					pokemonIdentifier(data[i]);				
+					
+			}else {
+					console.log("Saluons le tweetos !");
+					saluerTweetos(data[i]);
 				  
-			  }
-		  }
+			}
+		
+		}
 		  
 		  
 		  
@@ -95,11 +101,7 @@ function envoyerContrepeterie (jsonTweet){
 	console.log(jsonContrepeterie.contrepeterie[randomIntContrepeterie].original)
 	var reponse = "@"+jsonTweet.user.screen_name+" "+jsonContrepeterie.contrepeterie[randomIntContrepeterie].original;
 	console.log(reponse);
-	
-	T.post('statuses/update', { status: reponse , in_reply_to_status_id: jsonTweet.id_str  }, function(err, data, response) {
-			console.log(data);
-		  });
-		  
+	posterTweet(reponse, idTweet);	  
 	sauverTweetRepondu(jsonTweet);	  
 	
 	
@@ -114,13 +116,7 @@ function saluerTweetos (jsonTweet){
 	console.log(jsonSalutations[randomIntSalutation]);
 	var reponse = jsonSalutations[randomIntSalutation]+' @'+ jsonTweet.user.screen_name +' !!';
 	console.log(reponse);
-	
-	T.post('statuses/update', { status: reponse , 
-									  in_reply_to_status_id: idTweet  }, function(err, data, response) {
-			//console.log(data);
-			console.log("réponse envoyée");
-		  });
-		  
+	posterTweet(reponse, idTweet);	  
 	sauverTweetRepondu(jsonTweet);		  
 	
 }
@@ -187,11 +183,7 @@ function obtenirQualiteAir(jsonTweet, ville){
 			reponse = "@" + jsonTweet.user.screen_name + " QI : " + indiceDeQualite + " - " + description + " in " +villeAvecMaj;
 		}	
 		console.log("reponseAir : "+reponse);
-		T.post('statuses/update', { status: reponse , in_reply_to_status_id: idTweet  }, function(err, data, response) {
-			//console.log(data);
-			console.log("réponse qualité air envoyée");
-		  });
-	
+		posterTweet(reponse, idTweet);
 		sauverTweetRepondu(jsonTweet);  
 		  
 	  });
@@ -199,17 +191,55 @@ function obtenirQualiteAir(jsonTweet, ville){
 	}).on('error', function(e) {
 	  console.log("Got error: " + e.message);
 	});
-	
-
-	
-	
 	//TODO régler problème parseur... Au pire, try catch et on relance le process
 }
 
-function posterTweet(text, idTweetReponse){
+
+function pokemonIdentifier(jsonTweet){
+	
+	var idTweetReponse = jsonTweet.id_str;
+	var numPokemon = Math.floor((Math.random()*151)+1);
+	console.log(numPokemon);
+	var pathPokemon = '/api/v2/pokemon/' +numPokemon+'/';
+
+	var http = require('http');
+	var options = {
+	  host: 'pokeapi.co',
+	  path: pathPokemon
+	};
+
+	http.get(options, function(res) {
+	  console.log("Got response: " + res.statusCode);
+
+	  var content="";
+	  res.on("data", function(chunk) {
+		//console.log("BODY: " + chunk);
+		content+=chunk;
+	  });
+	  res.on("end",function(){
+		var jsonContent=JSON.parse(content);  
+		var pokemonName = jsonContent.name;
+		pokemonName = pokemonName[0].toUpperCase() + pokemonName.slice(1);
+		console.log("Pokemon Name : "+pokemonName);  
+		var contenuTweet= "@" + jsonTweet.user.screen_name + " I guess you look like..." + pokemonName + " !";
+		posterTweet(contenuTweet, idTweetReponse);
+		sauverTweetRepondu(jsonTweet);
+	  });
+	}).on('error', function(e) {
+	  console.log("Got error: " + e.message);
+	});
 	
 	
-	//TODO
+	
+}
+
+function posterTweet(contenuTweet, idTweetReponse){
+	
+	T.post('statuses/update', { status: contenuTweet , in_reply_to_status_id: idTweetReponse  }, function(err, data, response) {
+			//console.log(data);
+			//console.log("Tweet Envoyé");
+		  });
+
 }
 
 repondreTweets();
