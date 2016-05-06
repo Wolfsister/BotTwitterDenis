@@ -167,33 +167,35 @@ function obtenirQualiteAir(jsonTweet, ville){
 	};
 	http.get(options, function(res) {
 	  console.log("Got response: " + res.statusCode);
+	  var content = "";
 	  res.on("data", function(chunk) {
 		//console.log("BODY: " + chunk);
-		try{
-			chunk = JSON.parse(chunk);
-			console.log("Indice de Qualité : "+chunk.breezometer_aqi);
-			indiceDeQualite = chunk.breezometer_aqi;
-			console.log("Conseil : "+chunk.breezometer_description);
-			description = chunk.breezometer_description;
-			var villeAvecMaj= ville[0].toUpperCase() + ville.slice(1);
-			if(description === undefined){
-				reponse = "@" + jsonTweet.user.screen_name + " We don't have any data for " + villeAvecMaj + ", sorry for the inconvenience...";
-			}else {
-				reponse = "@" + jsonTweet.user.screen_name + " QI : " + indiceDeQualite + " - " + description + " in " +villeAvecMaj;
-			}	
-			console.log("reponseAir : "+reponse);
-			T.post('statuses/update', { status: reponse , in_reply_to_status_id: idTweet  }, function(err, data, response) {
-				//console.log(data);
-				console.log("réponse qualité air envoyée");
-			  });
+		content += chunk;
 		
-			sauverTweetRepondu(jsonTweet);
-		}
-		catch(e){
-			console.log(e);
-			obtenirQualiteAir(jsonTweet,ville);
-		}
 	  });
+	  
+	  res.on("end", function(){
+		jsonContent = JSON.parse(content);
+		indiceDeQualite = jsonContent.breezometer_aqi;
+		console.log("Indice de Qualité : "+indiceDeQualite);	
+		description = jsonContent.breezometer_description;
+		console.log("Conseil : "+description);
+		var villeAvecMaj= ville[0].toUpperCase() + ville.slice(1);
+		if(description === undefined){
+			reponse = "@" + jsonTweet.user.screen_name + " We don't have any data for " + villeAvecMaj + ", sorry for the inconvenience...";
+		}else {
+			reponse = "@" + jsonTweet.user.screen_name + " QI : " + indiceDeQualite + " - " + description + " in " +villeAvecMaj;
+		}	
+		console.log("reponseAir : "+reponse);
+		T.post('statuses/update', { status: reponse , in_reply_to_status_id: idTweet  }, function(err, data, response) {
+			//console.log(data);
+			console.log("réponse qualité air envoyée");
+		  });
+	
+		sauverTweetRepondu(jsonTweet);  
+		  
+	  });
+	  
 	}).on('error', function(e) {
 	  console.log("Got error: " + e.message);
 	});

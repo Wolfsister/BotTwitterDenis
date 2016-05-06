@@ -12,10 +12,14 @@ var options = {
 http.get(options, function(res) {
   console.log("Got response: " + res.statusCode);
 
+  var content="";
   res.on("data", function(chunk) {
-    console.log("BODY: " + chunk);
-	
-	//console.log("Pokemon Name : "+chunk.name);
+    //console.log("BODY: " + chunk);
+	content+=chunk;
+  });
+  res.on("end",function(){
+	var jsonContent=JSON.parse(content);  
+	console.log("Pokemon Name : "+jsonContent.name);  
   });
 }).on('error', function(e) {
   console.log("Got error: " + e.message);
