@@ -154,10 +154,10 @@ function obtenirQualiteAir(jsonTweet, ville){
 	
 	console.log("Ville : " +ville);
 	var idTweet = jsonTweet.id_str;
-	var indiceDeQualite;
-	var description;
+	var indiceDeQualite="";
+	var description="";
 	var pathWithCity = '/baqi/?location=' +ville+ '&key=f3c9d6d6f04048848a95222a17eaa9e2'
-	var reponse;
+	var reponse="";
 	
 	var http = require('http');
 	var options = {
@@ -174,7 +174,7 @@ function obtenirQualiteAir(jsonTweet, ville){
 		indiceDeQualite = chunk.breezometer_aqi;
 		console.log("Conseil : "+chunk.breezometer_description);
 		description = chunk.breezometer_description;
-		if(description=='undefined'){
+		if(description === undefined){
 			reponse = "@" + jsonTweet.user.screen_name + " We don't have data for your city, sorry for the inconvenience...";
 		}else {
 			reponse = "@" + jsonTweet.user.screen_name + " QI : " + indiceDeQualite + " - " + description + " in " +ville[0].toUpperCase() + ville.slice(1);
