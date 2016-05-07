@@ -12,12 +12,6 @@ var T = new Twit({
   timeout_ms:           60*1000,  // optional HTTP request timeout to apply to all requests. 
 })
 
-
-
-
-//TODO : récupérer instatustoreply
-
-
 // Une fois que répondu, marqué mostRecent, le premier tweet, et le mettre en sinceId (argument d'appel de mentions_timeline)
 
 
@@ -32,7 +26,7 @@ function repondreTweets(){
 	T.get("statuses/mentions_timeline", { resources : "statuses" } , function(err, data, response) {
 		
 	  //console.log("data0 " +JSON.stringify(data[0], null,2));
-	  mostRecentId = data[0].id_str;
+	  //mostRecentId = data[0].id_str;
 	  //console.log("mostrecentid :" + mostRecentId);
 	  
 	  //console.log("Text : "+data[0].text);
@@ -58,7 +52,11 @@ function repondreTweets(){
 			}else if (text.includes("pokemon") || text.includes("pokémon")){
 					console.log("Quel Pokémon je suis ?");
 					pokemonIdentifier(data[i]);				
-					
+				
+			}else if (text.includes("imdb")){
+					console.log("imdb detected");
+					infosImdb(data[i]);		
+								
 			}else {
 					console.log("Saluons le tweetos !");
 					saluerTweetos(data[i]);
@@ -138,11 +136,22 @@ function sauverTweetRepondu(jsonTweet){
 
 function trouverVilleDansTexte(texte){
 
-	console.log("Texte de base : " +texte);
+	console.log("Texte de base airquality: " +texte);
 	var texteSplitte=texte.split(" ");
 	var indexVille = texteSplitte.indexOf("airquality");
 	var city = texteSplitte[indexVille + 1];
 	return city;	
+	
+}	
+
+function trouverFilmDansTexte(text){
+
+	console.log("Texte de base IMDB : " +text);
+	var firstQuotation = text.indexOf('"') +1 ;
+	var lastQuotation = text.indexOf('"',firstQuotation);
+	var text_to_get = text.substring(firstQuotation,lastQuotation);
+	return text_to_get;
+	console.log(text_to_get);
 	
 }	
 
@@ -152,7 +161,7 @@ function obtenirQualiteAir(jsonTweet, ville){
 	var idTweet = jsonTweet.id_str;
 	var indiceDeQualite="";
 	var description="";
-	var pathWithCity = '/baqi/?location=' +ville+ '&key=f3c9d6d6f04048848a95222a17eaa9e2'
+	var pathWithCity = '/baqi/?location=' +encodeURI(ville)+ '&key=f3c9d6d6f04048848a95222a17eaa9e2'
 	var reponse="";
 	
 	var http = require('http');
@@ -242,6 +251,53 @@ function posterTweet(contenuTweet, idTweetReponse){
 
 }
 
+function infosImdb(jsonTweet){
+	
+	
+	var idTweetReponse = jsonTweet.id_str;
+	console.log("Contenu Tweet : "+jsonTweet.text);
+	var movie = trouverFilmDansTexte(jsonTweet.text);
+	console.log("Movie récupéré " +movie);
+	var http = require('http');
+	var options = {
+	  host: 'omdbapi.com',
+	  port: 80,
+	  path: '/?t=' + encodeURI(movie) 
+	};
+	var aqi="";
+	http.get(options, function(res) {
+		  console.log("Got response: " + res.statusCode);
+	
+		  var content="";
+		  
+		  res.on("data", function(chunk) {
+			content+=chunk;
+		  });
+		  
+		  res.on("end",function(){
+			console.log(content);
+			var jsonFilm = JSON.parse(content);
+			var mediaOwner=jsonFilm.Director;
+			if(mediaOwner == "N/A"){
+				mediaOwner = jsonFilm.Writer;
+			}
+			var tweetReponseFilm = "@" + jsonTweet.user.screen_name + " " +jsonFilm.Title + "(" + jsonFilm.Year + "), " + jsonFilm.Type + " by " + mediaOwner + " with " + jsonFilm.Actors + ". Rated "+jsonFilm.imdbRating+". ";
+			if((tweetReponseFilm.length + jsonFilm.Genre.length) < 140 ){
+				tweetReponseFilm += jsonFilm.Genre + ".";
+			}
+			console.log("Length : " +tweetReponseFilm.length);
+			console.log(tweetReponseFilm);
+			posterTweet(tweetReponseFilm, idTweetReponse);
+			sauverTweetRepondu(jsonTweet);
+		  });
+		}).on('error', function(e) {
+		  console.log("Got error: " + e.message);
+	});
+
+}
+
+
+console.log("Bot démarré !");
 repondreTweets();
 setInterval(repondreTweets,120000);
 

@@ -24,7 +24,6 @@ var answeredTweets = require("./my.json");
 console.log(answeredTweets.indexOf("4"));
 
 
-*/
 
 var jsonSalutations = require("./jsonSalutations.json");
 
@@ -32,3 +31,18 @@ var jsonSalutations = require("./jsonSalutations.json");
 	var randomIntSalutation = Math.floor((Math.random() * jsonSalutations.length));
 	console.log("randomInt : "+randomIntSalutation);
 	console.log(jsonSalutations[randomIntSalutation]);
+	
+	*/
+	
+function trouverFilmDansTexte(text){
+
+	console.log("Texte de base IMDB : " +text);
+	var firstQuotation = text.indexOf('"') + 1 ;
+	var lastQuotation = text.indexOf('"',firstQuotation);
+	var text_to_get = text.substring(firstQuotation,lastQuotation);
+	// return text_to_get;
+	console.log("Texte to get : "+text_to_get);
+	
+}	
+
+trouverFilmDansTexte('@Denis imdb "The Incredibles" Bonjour !');	
