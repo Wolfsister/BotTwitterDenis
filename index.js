@@ -3,12 +3,13 @@ var fs = require('fs'); //Pour sauver avancement
 var jsonContrepeterie = require("./jsonContrepeterie.json");
 var jsonSalutations = require("./jsonSalutations.json");
 var answeredTweets = require("./answeredTweetsId.json");
+var jsonCredentials = require("./credentials.json");
  
 var T = new Twit({
-  consumer_key:         '9xpMqXO5TjOJYQk1nrxvKpkj8',
-  consumer_secret:      '9oIuBAiwzYsd7ZW1B4I0R9kLbQkLfaepeLJJ6GDzTgeQlqSeFx',
-  access_token:         '727819450804805634-ZAOWLuG7qLYCi2r3ddzaBcIPAgIBadT',
-  access_token_secret:  'l5FIPWMhHrOLeQErTAPQQSSV1vMjJcN9rjJ5dFLB90Cbv',
+  consumer_key:         jsonCredentials.consumer_key,
+  consumer_secret:      jsonCredentials.consumer_secret,
+  access_token:         jsonCredentials.access_token,
+  access_token_secret:  jsonCredentials.access_token_secret,
   timeout_ms:           60*1000,  // optional HTTP request timeout to apply to all requests. 
 })
 
@@ -246,7 +247,7 @@ function posterTweet(contenuTweet, idTweetReponse){
 	
 	T.post('statuses/update', { status: contenuTweet , in_reply_to_status_id: idTweetReponse  }, function(err, data, response) {
 			//console.log(data);
-			//console.log("Tweet Envoyé");
+			console.log("Tweet Envoyé");
 		  });
 
 }
@@ -282,10 +283,14 @@ function infosImdb(jsonTweet){
 				mediaOwner = jsonFilm.Writer;
 			}
 			var tweetReponseFilm = "@" + jsonTweet.user.screen_name + " " +jsonFilm.Title + "(" + jsonFilm.Year + "), " + jsonFilm.Type + " by " + mediaOwner + " with " + jsonFilm.Actors + ". Rated "+jsonFilm.imdbRating+". ";
-			if((tweetReponseFilm.length + jsonFilm.Genre.length) < 140 ){
+			if(tweetReponseFilm && jsonFilm.genre && ((tweetReponseFilm.length + jsonFilm.Genre.length) < 140 )){
 				tweetReponseFilm += jsonFilm.Genre + ".";
 			}
 			console.log("Length : " +tweetReponseFilm.length);
+			
+			if(jsonFilm.Response == "False"){
+				tweetReponseFilm == "Désolé @" + jsonTweet.user.screen_name + " nous n'avons pu trouver d'infos pour votre requète";
+			}
 			console.log(tweetReponseFilm);
 			posterTweet(tweetReponseFilm, idTweetReponse);
 			sauverTweetRepondu(jsonTweet);

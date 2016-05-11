@@ -1,4 +1,4 @@
-var movie = 'Breaking Bad';
+var movie = 'Weeds';
 var http = require('http');
 	var options = {
 	  host: 'omdbapi.com',
