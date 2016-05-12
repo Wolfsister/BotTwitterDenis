@@ -56,7 +56,9 @@ function repondreTweets(){
 				
 			}else if (text.includes("imdb")){
 					console.log("imdb detected");
-					infosImdb(data[i]);		
+					if(verifSaisieImdb(text, data[i])){
+						infosImdb(data[i]);	
+					}	
 								
 			}else {
 					console.log("Saluons le tweetos !");
@@ -252,8 +254,41 @@ function posterTweet(contenuTweet, idTweetReponse){
 
 }
 
+function getTwoFirstActors (actorsList){
+
+	var arrayActors = actorsList.split(",");
+	return arrayActors[0] + " and"+ arrayActors[1];
+
+}
+
+function verifSaisieImdb (textTweet, jsonTweet) {
+
+	//TODO tester s'il y a au moins DEUX ' " '
+
+	if (!textTweet.includes('"')){
+		var messageError = 'Désolé @' + jsonTweet.user.screen_name + ' , votre saisie doit être comme ceci : imdb "filmousérie". ';
+		console.log( "Tweet IMDB n'a pas de guillemets.");
+		posterTweet(messageError, jsonTweet.id_str);
+		sauverTweetRepondu(jsonTweet);
+		return false;
+	} else { //pour tester si au moins deux "
+		var finSaisie = textTweet.slice((textTweet.indexOf('"'))+1);
+		console.log("finSaisie : "+ finSaisie);
+		if(!finSaisie.includes('"')){
+			var messageError = 'Désolé @' + jsonTweet.user.screen_name + ' , votre saisie doit être comme ceci : imdb "filmousérie". ';
+			console.log( "Tweet IMDB n'a pas deux guillemets.");
+			posterTweet(messageError, jsonTweet.id_str);
+			sauverTweetRepondu(jsonTweet);
+			return false;
+		}
+
+	}
+	return true;
+
+}
+
+
 function infosImdb(jsonTweet){
-	
 	
 	var idTweetReponse = jsonTweet.id_str;
 	console.log("Contenu Tweet : "+jsonTweet.text);
@@ -282,18 +317,39 @@ function infosImdb(jsonTweet){
 			if(mediaOwner == "N/A"){
 				mediaOwner = jsonFilm.Writer;
 			}
+			/*
 			var tweetReponseFilm = "@" + jsonTweet.user.screen_name + " " +jsonFilm.Title + "(" + jsonFilm.Year + "), " + jsonFilm.Type + " by " + mediaOwner + " with " + jsonFilm.Actors + ". Rated "+jsonFilm.imdbRating+". ";
 			if(tweetReponseFilm && jsonFilm.genre && ((tweetReponseFilm.length + jsonFilm.Genre.length) < 140 )){
 				tweetReponseFilm += jsonFilm.Genre + ".";
 			}
 			console.log("Length : " +tweetReponseFilm.length);
 			
+			*/
+
 			if(jsonFilm.Response == "False"){
-				tweetReponseFilm == "Désolé @" + jsonTweet.user.screen_name + " nous n'avons pu trouver d'infos pour votre requète";
+				var tweetReponseFilm = "Désolé @" + jsonTweet.user.screen_name + " nous n'avons pu trouver d'infos pour votre requète";
+				console.log("Film ou série non trouvée.");
+				posterTweet(tweetReponseFilm, idTweetReponse);
+				sauverTweetRepondu(jsonTweet);
+
+
+			} else {
+
+				var tweetReponseFilm1 = "@" + jsonTweet.user.screen_name + " " + jsonFilm.Title + "(" + jsonFilm.Year + ") by " + mediaOwner + " with "+ getTwoFirstActors(jsonFilm.Actors) +". Rated "+jsonFilm.imdbRating+". " + jsonFilm.Genre +".";
+				var tweetReponseFilm2 = "@" + jsonTweet.user.screen_name + " " + jsonFilm.Title + " : " + jsonFilm.Plot ;
+
+
+				console.log("Film trouvé : " +tweetReponseFilm1 + tweetReponseFilm2);
+				posterTweet(tweetReponseFilm1, idTweetReponse);
+				posterTweet(tweetReponseFilm2, idTweetReponse);
+				sauverTweetRepondu(jsonTweet);
+
 			}
-			console.log(tweetReponseFilm);
-			posterTweet(tweetReponseFilm, idTweetReponse);
-			sauverTweetRepondu(jsonTweet);
+
+
+
+
+			
 		  });
 		}).on('error', function(e) {
 		  console.log("Got error: " + e.message);
@@ -301,7 +357,6 @@ function infosImdb(jsonTweet){
 
 }
 
-console.log(jsonCredentials.twitter);
 console.log("Bot démarré !");
 repondreTweets();
 setInterval(repondreTweets,120000);
