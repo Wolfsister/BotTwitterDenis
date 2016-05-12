@@ -6,10 +6,10 @@ var answeredTweets = require("./answeredTweetsId.json");
 var jsonCredentials = require("./credentials.json");
  
 var T = new Twit({
-  consumer_key:         jsonCredentials.consumer_key,
-  consumer_secret:      jsonCredentials.consumer_secret,
-  access_token:         jsonCredentials.access_token,
-  access_token_secret:  jsonCredentials.access_token_secret,
+  consumer_key:         jsonCredentials.twitter.consumer_key,
+  consumer_secret:      jsonCredentials.twitter.consumer_secret,
+  access_token:         jsonCredentials.twitter.access_token,
+  access_token_secret:  jsonCredentials.twitter.access_token_secret,
   timeout_ms:           60*1000,  // optional HTTP request timeout to apply to all requests. 
 })
 
@@ -162,7 +162,7 @@ function obtenirQualiteAir(jsonTweet, ville){
 	var idTweet = jsonTweet.id_str;
 	var indiceDeQualite="";
 	var description="";
-	var pathWithCity = '/baqi/?location=' +encodeURI(ville)+ '&key=f3c9d6d6f04048848a95222a17eaa9e2'
+	var pathWithCity = '/baqi/?location=' +encodeURI(ville)+ '&key=' +jsonCredentials.breezometer.key;
 	var reponse="";
 	
 	var http = require('http');
@@ -301,7 +301,7 @@ function infosImdb(jsonTweet){
 
 }
 
-
+console.log(jsonCredentials.twitter);
 console.log("Bot démarré !");
 repondreTweets();
 setInterval(repondreTweets,120000);
