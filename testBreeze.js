@@ -1,6 +1,3 @@
-var key = "f3c9d6d6f04048848a95222a17eaa9e2";
-
-
 
 
 function getAirQuality(){
@@ -8,7 +5,7 @@ function getAirQuality(){
 	var options = {
 	  host: 'api.breezometer.com',
 	  port: 80,
-	  path: '/baqi/?location=Troyes&key=f3c9d6d6f04048848a95222a17eaa9e2'
+	  path: '/baqi/?location=Troyes&key=' + jsonCredentials.breezometer.key;
 	};
 	var aqi="";
 	http.get(options, function(res) {
