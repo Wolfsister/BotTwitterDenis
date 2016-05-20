@@ -41,10 +41,11 @@ function repondreTweets(){
 		  //console.log("answeredTweets : "+answeredTweets);
 		  
 		var text = data[i].text.toLowerCase();
+		text = text.replace(/[èéêë]/g,"e")
 		if(answeredTweets.indexOf(data[i].id_str)==-1){
-			if (text.includes("contrepeterie") || text.includes("contrepèterie")){
-				  console.log("Contrepeterie trouvée pour le tweet de @"+ data[i].user.screen_name);
-				  envoyerContrepeterie(data[i]);
+			if (text.includes("contrepeterie") || text.includes("contrepetrie")){
+				    console.log("Contrepeterie trouvée pour le tweet de @"+ data[i].user.screen_name);
+				    envoyerContrepeterie(data[i]);
 			}else if (text.includes("airquality")){
 					console.log("Cherche Qualité de l'Air");
 					var ville = trouverVilleDansTexte(text);
